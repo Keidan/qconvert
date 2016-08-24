@@ -31,6 +31,9 @@
     class QConvert;
   }
 
+  /**
+   * @brief The QConvert UI class
+   */
   class QConvert : public QDialog {
     Q_OBJECT
 
@@ -39,14 +42,51 @@
       ~QConvert();
 
     private slots:
+       /**
+        * @brief Method called by the encoding process to read the output of the ffmpeg process.
+        */
        void readEncodingStandardOutput();
+
+       /**
+        * @brief Method called by the encoding process when the encoding process is started.
+        */
        void encodingStarted();
+
+       /**
+        * @brief Method called by the encoding process when the encoding process is finished.
+        */
        void encodingFinished();
+
+       /**
+        * @brief Method called when the user click on the FFmpeg button.
+        */
        void on_ffmpegButton_clicked();
+
+       /**
+        * @brief Method called when the user click on the 'from' button.
+        */
        void on_fromButton_clicked();
+
+       /**
+        * @brief Method called when the user click on the 'convert' button.
+        */
        void on_convertButton_clicked();
+
+       /**
+        * @brief Method called when the user click on the 'play Input' button.
+        */
        void on_playInputButton_clicked();
+
+       /**
+        * @brief Method called when the user click on the 'play Output' button.
+        */
        void on_playOutputButton_clicked();
+
+       /**
+        * @brief Method called when an event is reached by the ffmpegLineEdit component (Focus lost).
+        * @param object The owner object.
+        * @param event The event type.
+        */
        bool eventFilter(QObject *object, QEvent *event);
 
     private:
@@ -56,8 +96,22 @@
       QProcess *m_outputPlayProcess;
       QString m_outputString;
 
+      /**
+       * @brief Test if the FFmpeg entry is valid (non empty), and display a warning message else.
+       * @return true if valid.
+       */
       bool isFFmpeg();
+
+      /**
+       * @brief Validate the FFmpeg path.
+       * @param dir The directory to test.
+       */
       void validateFFmpegPath(QString &dir);
+
+      /**
+       * @brief Append a message to the log area.
+       * @param str The message to append.
+       */
       void logAreaAppend(QString &str);
   };
 

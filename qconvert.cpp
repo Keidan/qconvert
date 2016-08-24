@@ -51,7 +51,7 @@ QConvert::QConvert(QWidget *parent) :
   m_outputPlayProcess = new QProcess(this);
 
   connect(m_encodingProcess, SIGNAL(started()), this, SLOT(encodingStarted()));
-  connect(m_encodingProcess,SIGNAL(readEncodingStandardOutput()), this, SLOT(readEncodingStandardOutput()));
+  connect(m_encodingProcess, SIGNAL(readEncodingStandardOutput()), this, SLOT(readEncodingStandardOutput()));
   connect(m_encodingProcess, SIGNAL(finished(int)), this, SLOT(encodingFinished()));
 
 #ifdef __linux__
@@ -66,11 +66,18 @@ QConvert::~QConvert() {
   delete ui;
 }
 
-
+/**
+ * @brief Method called by the encoding process when the encoding process is started.
+ */
 void QConvert::encodingStarted() {
   qDebug() << "encodingStarted()";
 }
 
+/**
+ * @brief Method called when an event is reached by the ffmpegLineEdit component (Focus lost).
+ * @param object The owner object.
+ * @param event The event type.
+ */
 bool QConvert::eventFilter(QObject *object, QEvent *event) {
   if (event->type() == QEvent::FocusOut) {
     if (object == ui->ffmpegLineEdit) {
@@ -81,7 +88,9 @@ bool QConvert::eventFilter(QObject *object, QEvent *event) {
   return false;
 }
 
-// conversion start
+/**
+ * @brief Method called when the user click on the 'convert' button.
+ */
 void QConvert::on_convertButton_clicked() {
   if(!isFFmpeg()) return;
   QString bin = ui->ffmpegLineEdit->text() + "/"FFMPEG_BIN;
@@ -123,12 +132,18 @@ void QConvert::on_convertButton_clicked() {
   m_encodingProcess->start(bin, args);
 }
 
+/**
+ * @brief Method called by the encoding process to read the output of the ffmpeg process.
+ */
 void QConvert::readEncodingStandardOutput() {
   QString str = m_encodingProcess->readAllStandardOutput();
   logAreaAppend(str);
 }
 
-
+/**
+ * @brief Append a message to the log area.
+ * @param str The message to append.
+ */
 void QConvert::logAreaAppend(QString &str) {
   m_outputString.append(str);
   ui->logArea->setText(m_outputString);
@@ -136,6 +151,9 @@ void QConvert::logAreaAppend(QString &str) {
   ui->logArea->verticalScrollBar()->setSliderPosition(ui->logArea->verticalScrollBar()->maximum());
 }
 
+/**
+ * @brief Method called by the encoding process when the encoding process is finished.
+ */
 void QConvert::encodingFinished() {
   // Set the encoding status by checking output file's existence
   QString fileName = ui->toLineEdit->text();
@@ -148,7 +166,9 @@ void QConvert::encodingFinished() {
     ui->statusLabel->setText("Transcoding Status: Failed!");
 }
 
-// Browse... button clicked - this is for ffmpeg binary
+/**
+ * @brief Method called when the user click on the FFmpeg button.
+ */
 void QConvert::on_ffmpegButton_clicked() {
   QString dir = QFileDialog::getExistingDirectory(
     this, tr("FFMPEG directory"), QDir::homePath(),
@@ -156,7 +176,9 @@ void QConvert::on_ffmpegButton_clicked() {
   validateFFmpegPath(dir);
 }
 
-// Browse... button clicked - this is for input file
+/**
+ * @brief Method called when the user click on the 'from' button.
+ */
 void QConvert::on_fromButton_clicked() {
   QString fileName =
   QFileDialog::getOpenFileName(
@@ -169,6 +191,9 @@ void QConvert::on_fromButton_clicked() {
   }
 }
 
+/**
+ * @brief Method called when the user click on the 'play Input' button.
+ */
 void QConvert::on_playInputButton_clicked() {
   if(!isFFmpeg()) return;
   QString bin = ui->ffmpegLineEdit->text() + "/"FFPLAY_BIN;
@@ -177,6 +202,9 @@ void QConvert::on_playInputButton_clicked() {
   m_inputPlayProcess->start(bin, args);
 }
 
+/**
+ * @brief Method called when the user click on the 'play Output' button.
+ */
 void QConvert::on_playOutputButton_clicked() {
   if(!isFFmpeg()) return;
   QString bin = ui->ffmpegLineEdit->text() + "/"FFPLAY_BIN;
@@ -185,7 +213,10 @@ void QConvert::on_playOutputButton_clicked() {
   m_outputPlayProcess->start(bin, args);
 }
 
-
+/**
+ * @brief Test if the FFmpeg entry is valid (non empty), and display a warning message else.
+ * @return true if valid.
+ */
 bool QConvert::isFFmpeg() {
   QString str = ui->ffmpegLineEdit->text();
   if(str.isEmpty()) {
@@ -195,6 +226,10 @@ bool QConvert::isFFmpeg() {
   return true;
 }
 
+/**
+ * @brief Validate the FFmpeg path.
+ * @param dir The directory to test.
+ */
 void QConvert::validateFFmpegPath(QString &dir) {
   if (!dir.isEmpty()) {
     QStringList strList;
