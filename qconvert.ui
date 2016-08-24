@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>QConvert</class>
+ <widget class="QDialog" name="QConvert">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>480</width>
+    <height>400</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="hlayout_ffmpeg_1">
+     <item>
+      <layout class="QHBoxLayout" name="hlayout_ffmpeg_2">
+       <item>
+        <widget class="QLabel" name="ffmpeg_label">
+         <property name="text">
+          <string>FFMPEG (bin dir):</string>
+         </property>
+         <property name="buddy">
+          <cstring>ffmpegLineEdit</cstring>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="ffmpegLineEdit"/>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QPushButton" name="ffmpegButton">
+       <property name="text">
+        <string>Browse...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="hlayout_from_1">
+     <item>
+      <layout class="QHBoxLayout" name="hlayout_from_2">
+       <item>
+        <widget class="QLabel" name="fromLabel">
+         <property name="text">
+          <string>From:</string>
+         </property>
+         <property name="buddy">
+          <cstring>ffmpegLineEdit</cstring>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="fromLineEdit"/>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QPushButton" name="fromButton">
+       <property name="text">
+        <string>Browse...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="2" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="hlayout_to_1">
+     <item>
+      <layout class="QHBoxLayout" name="hlayout_to_2">
+       <item>
+        <widget class="QLabel" name="toLabel">
+         <property name="text">
+          <string>To:</string>
+         </property>
+         <property name="buddy">
+          <cstring>toLineEdit</cstring>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="toLineEdit"/>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QPushButton" name="convertButton">
+       <property name="text">
+        <string>Convert</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="3" column="0" colspan="2">
+    <widget class="QTextEdit" name="logArea"/>
+   </item>
+   <item row="4" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="hlayout_status_1">
+     <item>
+      <widget class="QLabel" name="statusLabel">
+       <property name="text">
+        <string>Transcoding Status:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="hspacer_status_1">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item row="5" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="hlayout_play_1">
+     <item>
+      <widget class="QPushButton" name="playInputButton">
+       <property name="text">
+        <string>Play Input</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="playOutputButton">
+       <property name="text">
+        <string>Play Output</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="6" column="0">
+    <spacer name="close_spacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>298</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="6" column="1">
+    <widget class="QPushButton" name="closeButton">
+     <property name="text">
+      <string>Close</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>closeButton</sender>
+   <signal>clicked()</signal>
+   <receiver>QConvert</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>267</x>
+     <y>125</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>267</x>
+     <y>174</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
