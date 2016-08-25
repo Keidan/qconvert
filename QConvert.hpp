@@ -46,11 +46,7 @@
        /**
         * @brief Method called by the encoding process to read the stdout of the ffmpeg process.
         */
-       void readEncodingStandardOutput();
-       /**
-        * @brief Method called by the encoding process to read the stderr of the ffmpeg process.
-        */
-       void readEncodingStandardError();
+       void readyReadStandardOutput();
 
        /**
         * @brief Method called by the encoding process when the encoding process is started.

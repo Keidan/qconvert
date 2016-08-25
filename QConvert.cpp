@@ -56,8 +56,7 @@ QConvert::QConvert(QWidget *parent) :
   m_outputPlayProcess = new QProcess(this);
 
   connect(m_encodingProcess, SIGNAL(started()), this, SLOT(encodingStarted()));
-  connect(m_encodingProcess, SIGNAL(readEncodingStandardOutput()), this, SLOT(readEncodingStandardOutput()));
-  connect(m_encodingProcess, SIGNAL(readEncodingStandardError()), this, SLOT(readEncodingStandardError()));
+  connect(m_encodingProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(readyReadStandardOutput()));
   connect(m_encodingProcess, SIGNAL(finished(int)), this, SLOT(encodingFinished()));
 
   connect(m_inputPlayProcess, SIGNAL(finished(int)), this, SLOT(inputFinished()));
@@ -171,18 +170,10 @@ void QConvert::on_convertButton_clicked() {
 /**
  * @brief Method called by the encoding process to read the stdout of the ffmpeg process.
  */
-void QConvert::readEncodingStandardOutput() {
-  QString str = m_encodingProcess->readAllStandardOutput();
-  logAreaAppend(str);
+void QConvert::readyReadStandardOutput() {
+  logAreaAppend(m_encodingProcess->readAllStandardOutput());
 }
 
-/**
- * @brief Method called by the encoding process to read the stderr of the ffmpeg process.
- */
-void QConvert::readEncodingStandardError() {
-  QString str = m_encodingProcess->readAllStandardError();
-  logAreaAppend(str);
-}
 
 /**
  * @brief Append a message to the log area.
