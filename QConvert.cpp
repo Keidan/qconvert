@@ -27,10 +27,12 @@
 #include <QFileDialog>
 #include "QVideoFormat.hpp"
 
-#define PLAY_INPUT  "Play input"
-#define PLAY_OUTPUT "Play output"
-#define STOP_INPUT  "Stop input"
-#define STOP_OUTPUT "Stop output"
+#define PLAY_INPUT     "Play input"
+#define PLAY_OUTPUT    "Play output"
+#define STOP_INPUT     "Stop input"
+#define STOP_OUTPUT    "Stop output"
+#define START_CONVERT  "Convert"
+#define STOP_CONVERT   "Stop"
 
 QConvert::QConvert(QWidget *parent) :
     QDialog(parent), ui(new Ui::QConvert), m_encodingProcess(NULL),
@@ -55,6 +57,7 @@ QConvert::QConvert(QWidget *parent) :
 
   connect(m_encodingProcess, SIGNAL(started()), this, SLOT(encodingStarted()));
   connect(m_encodingProcess, SIGNAL(readEncodingStandardOutput()), this, SLOT(readEncodingStandardOutput()));
+  connect(m_encodingProcess, SIGNAL(readEncodingStandardError()), this, SLOT(readEncodingStandardError()));
   connect(m_encodingProcess, SIGNAL(finished(int)), this, SLOT(encodingFinished()));
 
   connect(m_inputPlayProcess, SIGNAL(finished(int)), this, SLOT(inputFinished()));
@@ -95,7 +98,7 @@ QConvert::~QConvert() {
  * @brief Method called by the encoding process when the encoding process is started.
  */
 void QConvert::encodingStarted() {
-  qDebug() << "encodingStarted()";
+  logAreaAppend("Encoding started\n");
 }
 
 /**
@@ -117,6 +120,11 @@ bool QConvert::eventFilter(QObject *object, QEvent *event) {
  * @brief Method called when the user click on the 'convert' button.
  */
 void QConvert::on_convertButton_clicked() {
+
+  if(ui->convertButton->text() == STOP_CONVERT) {
+    m_encodingProcess->terminate();
+    return;
+  }
   QString bin = ui->ffmpegLineEdit->text();
   if(!QHelper::isFFmpeg(this, bin)) return;
   bin += "/" FFMPEG_BIN;
@@ -124,20 +132,19 @@ void QConvert::on_convertButton_clicked() {
   QStringList args;
   QString input = ui->inputLineEdit->text();
   if(input.isEmpty()) {
-    qDebug() << "No input";
+    logAreaAppend("No input\n");
     QMessageBox::information(this, MSGBOX_TITLE, "Input file not specified");
     return;
   }
   QString ext = ui->formatCombobox->itemData(ui->formatCombobox->currentIndex()).toString();
   m_resultFile = input + ext;
   if(m_resultFile.isEmpty()) {
-    qDebug() << "No output";
+    logAreaAppend("No output\n");
     QMessageBox::information(this, MSGBOX_TITLE, "Output file not specified");
     return;
   }
 
-  qDebug() << "output file check " << m_resultFile;
-  qDebug() << "QFile::exists(\"" << m_resultFile << "\") = " << QFile::exists(m_resultFile);
+  logAreaAppend("Output file check " + m_resultFile + "\n");
   if (QFile::exists(m_resultFile)) {
     if (QMessageBox::No == QMessageBox::question(this, MSGBOX_TITLE,
         "There already exists a file called " + m_resultFile + " in "
@@ -154,14 +161,15 @@ void QConvert::on_convertButton_clicked() {
 
   args << "-i" << input << m_resultFile;
 
-  qDebug() << args;
 
+  logAreaAppend(bin + " -> " + args.join(" ") + "\n");
+  ui->convertButton->setText(STOP_CONVERT);
   m_encodingProcess->setProcessChannelMode(QProcess::MergedChannels);
   m_encodingProcess->start(bin, args);
 }
 
 /**
- * @brief Method called by the encoding process to read the output of the ffmpeg process.
+ * @brief Method called by the encoding process to read the stdout of the ffmpeg process.
  */
 void QConvert::readEncodingStandardOutput() {
   QString str = m_encodingProcess->readAllStandardOutput();
@@ -169,10 +177,18 @@ void QConvert::readEncodingStandardOutput() {
 }
 
 /**
+ * @brief Method called by the encoding process to read the stderr of the ffmpeg process.
+ */
+void QConvert::readEncodingStandardError() {
+  QString str = m_encodingProcess->readAllStandardError();
+  logAreaAppend(str);
+}
+
+/**
  * @brief Append a message to the log area.
  * @param str The message to append.
  */
-void QConvert::logAreaAppend(QString &str) {
+void QConvert::logAreaAppend(const QString &str) {
   m_outputString.append(str);
   ui->logArea->setText(m_outputString);
   // put the slider at the bottom
@@ -190,6 +206,8 @@ void QConvert::encodingFinished() {
   }
   else
     ui->statusLabel->setText("Transcoding Status: Failed!");
+  ui->convertButton->setText(START_CONVERT);
+  logAreaAppend("Encoding finished\n");
 }
 
 /**

@@ -44,9 +44,13 @@
 
     private slots:
        /**
-        * @brief Method called by the encoding process to read the output of the ffmpeg process.
+        * @brief Method called by the encoding process to read the stdout of the ffmpeg process.
         */
        void readEncodingStandardOutput();
+       /**
+        * @brief Method called by the encoding process to read the stderr of the ffmpeg process.
+        */
+       void readEncodingStandardError();
 
        /**
         * @brief Method called by the encoding process when the encoding process is started.
@@ -114,7 +118,7 @@
        * @brief Append a message to the log area.
        * @param str The message to append.
        */
-      void logAreaAppend(QString &str);
+      void logAreaAppend(const QString &str);
 
   };
 
