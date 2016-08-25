@@ -43,13 +43,13 @@
     </layout>
    </item>
    <item row="1" column="0" colspan="2">
-    <layout class="QHBoxLayout" name="hlayout_from_1">
+    <layout class="QHBoxLayout" name="hlayout_input_1">
      <item>
-      <layout class="QHBoxLayout" name="hlayout_from_2">
+      <layout class="QHBoxLayout" name="hlayout_input_2">
        <item>
-        <widget class="QLabel" name="fromLabel">
+        <widget class="QLabel" name="inputLabel">
          <property name="text">
-          <string>From:</string>
+          <string>Input file:</string>
          </property>
          <property name="buddy">
           <cstring>ffmpegLineEdit</cstring>
@@ -57,12 +57,12 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="fromLineEdit"/>
+        <widget class="QLineEdit" name="inputLineEdit"/>
        </item>
       </layout>
      </item>
      <item>
-      <widget class="QPushButton" name="fromButton">
+      <widget class="QPushButton" name="inputButton">
        <property name="text">
         <string>Browse...</string>
        </property>
@@ -71,21 +71,18 @@
     </layout>
    </item>
    <item row="2" column="0" colspan="2">
-    <layout class="QHBoxLayout" name="hlayout_to_1">
+    <layout class="QHBoxLayout" name="hlayout_out_1">
      <item>
-      <layout class="QHBoxLayout" name="hlayout_to_2">
+      <layout class="QHBoxLayout" name="hlayout_out_2">
        <item>
-        <widget class="QLabel" name="toLabel">
+        <widget class="QLabel" name="outLabel">
          <property name="text">
-          <string>To:</string>
-         </property>
-         <property name="buddy">
-          <cstring>toLineEdit</cstring>
+          <string>Output format:</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="toLineEdit"/>
+        <widget class="QComboBox" name="formatCombobox"/>
        </item>
       </layout>
      </item>
@@ -130,14 +127,14 @@
      <item>
       <widget class="QPushButton" name="playInputButton">
        <property name="text">
-        <string>Play Input</string>
+        <string>Play input</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="playOutputButton">
        <property name="text">
-        <string>Play Output</string>
+        <string>Play output</string>
        </property>
       </widget>
      </item>

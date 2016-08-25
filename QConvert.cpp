@@ -17,22 +17,25 @@
  *
  *******************************************************************************
  */
-#include "qconvert.h"
-#include "ui_qconvert.h"
+#include "QConvert.hpp"
+#include "ui_QConvert.h"
 #include <QDebug>
 #include <QScrollBar>
 #include <QMessageBox>
 #include <QDir>
 #include <QFileInfo>
 #include <QFileDialog>
+#include "QVideoFormat.hpp"
 
-#define MSGBOX_TITLE "FFmpeg"
-#define FFPLAY_BIN "ffplay"
-#define FFMPEG_BIN "ffmpeg"
+#define PLAY_INPUT  "Play input"
+#define PLAY_OUTPUT "Play output"
+#define STOP_INPUT  "Stop input"
+#define STOP_OUTPUT "Stop output"
 
 QConvert::QConvert(QWidget *parent) :
     QDialog(parent), ui(new Ui::QConvert), m_encodingProcess(NULL),
-    m_inputPlayProcess(NULL), m_outputPlayProcess(NULL), m_outputString("") {
+    m_inputPlayProcess(NULL), m_outputPlayProcess(NULL), m_outputString(""),
+    m_fileDialogFormats(""), m_resultFile("") {
 
   ui->setupUi(this);
 
@@ -42,7 +45,7 @@ QConvert::QConvert(QWidget *parent) :
   // Play button for output - initially disabled
   ui->playOutputButton->setEnabled(false);
   ui->playInputButton->setEnabled(false);
-  ui->fromButton->setEnabled(false);
+  ui->inputButton->setEnabled(false);
   ui->convertButton->setEnabled(false);
 
   // Create processes: 1.encoding, 2.input play 3.output play
@@ -54,12 +57,34 @@ QConvert::QConvert(QWidget *parent) :
   connect(m_encodingProcess, SIGNAL(readEncodingStandardOutput()), this, SLOT(readEncodingStandardOutput()));
   connect(m_encodingProcess, SIGNAL(finished(int)), this, SLOT(encodingFinished()));
 
+  connect(m_inputPlayProcess, SIGNAL(finished(int)), this, SLOT(inputFinished()));
+  connect(m_outputPlayProcess, SIGNAL(finished(int)), this, SLOT(outputFinished()));
+
 #ifdef __linux__
-  if(QFile::exists("/usr/bin/"FFMPEG_BIN) && QFile::exists("/usr/bin/"FFPLAY_BIN)) {
+  if(QFile::exists("/usr/bin/" FFMPEG_BIN) && QFile::exists("/usr/bin/" FFPLAY_BIN)) {
     ui->ffmpegLineEdit->setText("/usr/bin");
-    ui->fromButton->setEnabled(true);
+    ui->inputButton->setEnabled(true);
   }
 #endif
+
+  /* intialize the cb content */
+  QList<QVideoFormat*> formats = QVideoFormat::makeDefaults();
+  /* first time iterate to list all media files */
+  int i = 0;
+  m_fileDialogFormats = "All video files (";
+  for(; i < formats.size(); ++i) {
+    m_fileDialogFormats += "*" + formats.at(i)->getExtension();
+    if(i < formats.size() - 1) m_fileDialogFormats += " ";
+  }
+  m_fileDialogFormats += ");;";
+  for(i = 0; i < formats.size(); ++i) {
+    QVideoFormat* qvf = formats.at(i);
+    ui->formatCombobox->addItem(qvf->format(), QVariant::fromValue(qvf->getExtension()));
+    m_fileDialogFormats += qvf->format();
+    if(i < formats.size() - 1) m_fileDialogFormats += ";;";
+    delete qvf;
+  }
+  formats.clear();
 }
 
 QConvert::~QConvert() {
@@ -82,7 +107,7 @@ bool QConvert::eventFilter(QObject *object, QEvent *event) {
   if (event->type() == QEvent::FocusOut) {
     if (object == ui->ffmpegLineEdit) {
       QString dir = ui->ffmpegLineEdit->text();
-      validateFFmpegPath(dir);
+      QHelper::validateFFmpegPath(this, dir, ui->ffmpegLineEdit, ui->inputButton);
     }
   }
   return false;
@@ -92,39 +117,42 @@ bool QConvert::eventFilter(QObject *object, QEvent *event) {
  * @brief Method called when the user click on the 'convert' button.
  */
 void QConvert::on_convertButton_clicked() {
-  if(!isFFmpeg()) return;
-  QString bin = ui->ffmpegLineEdit->text() + "/"FFMPEG_BIN;
+  QString bin = ui->ffmpegLineEdit->text();
+  if(!QHelper::isFFmpeg(this, bin)) return;
+  bin += "/" FFMPEG_BIN;
 
   QStringList args;
-  QString input = ui->fromLineEdit->text();
+  QString input = ui->inputLineEdit->text();
   if(input.isEmpty()) {
     qDebug() << "No input";
     QMessageBox::information(this, MSGBOX_TITLE, "Input file not specified");
     return;
   }
-  QString output = ui->toLineEdit->text();
-  if(output.isEmpty()) {
+  QString ext = ui->formatCombobox->itemData(ui->formatCombobox->currentIndex()).toString();
+  m_resultFile = input + ext;
+  if(m_resultFile.isEmpty()) {
     qDebug() << "No output";
     QMessageBox::information(this, MSGBOX_TITLE, "Output file not specified");
     return;
   }
 
-  QString fileName = ui->toLineEdit->text();
-  qDebug() << "output file check " << fileName;
-  qDebug() << "QFile::exists(fileName) = " << QFile::exists(fileName);
-  if (QFile::exists(fileName)) {
+  qDebug() << "output file check " << m_resultFile;
+  qDebug() << "QFile::exists(\"" << m_resultFile << "\") = " << QFile::exists(m_resultFile);
+  if (QFile::exists(m_resultFile)) {
     if (QMessageBox::No == QMessageBox::question(this, MSGBOX_TITLE,
-        "There already exists a file called " + fileName + " in "
+        "There already exists a file called " + m_resultFile + " in "
         "the current directory. Overwrite?",
-        QMessageBox::Yes|QMessageBox::No, QMessageBox::No))
+        QMessageBox::Yes|QMessageBox::No, QMessageBox::No)) {
+      m_resultFile = "";
       return;
-    QFile::remove(fileName);
-    while(QFile::exists(fileName)) {
+    }
+    QFile::remove(m_resultFile);
+    while(QFile::exists(m_resultFile)) {
       qDebug() << "output file still there";
     }
   }
 
-  args << "-i" << input << output;
+  args << "-i" << input << m_resultFile;
 
   qDebug() << args;
 
@@ -156,9 +184,7 @@ void QConvert::logAreaAppend(QString &str) {
  */
 void QConvert::encodingFinished() {
   // Set the encoding status by checking output file's existence
-  QString fileName = ui->toLineEdit->text();
-
-  if (QFile::exists(fileName)) {
+  if (QFile::exists(m_resultFile)) {
     ui->statusLabel->setText("Transcoding Status: Successful!");
     ui->playOutputButton->setEnabled(true);
   }
@@ -170,22 +196,24 @@ void QConvert::encodingFinished() {
  * @brief Method called when the user click on the FFmpeg button.
  */
 void QConvert::on_ffmpegButton_clicked() {
+  QString home = QDir::homePath();
+  if(!ui->ffmpegLineEdit->text().isEmpty())
+      home = ui->ffmpegLineEdit->text();
   QString dir = QFileDialog::getExistingDirectory(
-    this, tr("FFMPEG directory"), QDir::homePath(),
+    this, tr("FFMPEG directory"), home,
     QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-  validateFFmpegPath(dir);
+  QHelper::validateFFmpegPath(this, dir, ui->ffmpegLineEdit, ui->inputButton);
 }
 
 /**
- * @brief Method called when the user click on the 'from' button.
+ * @brief Method called when the user click on the 'input' button.
  */
-void QConvert::on_fromButton_clicked() {
-  QString fileName =
-  QFileDialog::getOpenFileName(
+void QConvert::on_inputButton_clicked() {
+  QString fileName = QFileDialog::getOpenFileName(
     this, "Open File", QDir::homePath(),
-    "videos (*.mp4 *.mov *.avi *.mkv)");
+    m_fileDialogFormats);
   if (!fileName.isEmpty()) {
-    ui->fromLineEdit->setText(fileName);
+    ui->inputLineEdit->setText(fileName);
     ui->playInputButton->setEnabled(true);
     ui->convertButton->setEnabled(true);
   }
@@ -195,61 +223,40 @@ void QConvert::on_fromButton_clicked() {
  * @brief Method called when the user click on the 'play Input' button.
  */
 void QConvert::on_playInputButton_clicked() {
-  if(!isFFmpeg()) return;
-  QString bin = ui->ffmpegLineEdit->text() + "/"FFPLAY_BIN;
-  QStringList args;
-  args << ui->fromLineEdit->text();
-  m_inputPlayProcess->start(bin, args);
+  QString bin = ui->ffmpegLineEdit->text();
+  QString path = ui->inputLineEdit->text();
+  if(ui->playInputButton->text() == STOP_INPUT)
+    m_inputPlayProcess->terminate();
+  else {
+    if(QHelper::startPlayer(this, m_inputPlayProcess, bin, path))
+      ui->playInputButton->setText(STOP_INPUT);
+  }
 }
 
 /**
  * @brief Method called when the user click on the 'play Output' button.
  */
 void QConvert::on_playOutputButton_clicked() {
-  if(!isFFmpeg()) return;
-  QString bin = ui->ffmpegLineEdit->text() + "/"FFPLAY_BIN;
-  QStringList args;
-  args << ui->toLineEdit->text();
-  m_outputPlayProcess->start(bin, args);
+  QString bin = ui->ffmpegLineEdit->text();
+  if(ui->playOutputButton->text() == STOP_OUTPUT)
+    m_outputPlayProcess->terminate();
+  else {
+    if(QHelper::startPlayer(this, m_outputPlayProcess, bin, m_resultFile))
+      ui->playOutputButton->setText(STOP_OUTPUT);
+  }
 }
 
 /**
- * @brief Test if the FFmpeg entry is valid (non empty), and display a warning message else.
- * @return true if valid.
+ * @brief Callback called when the input process is stopped.
  */
-bool QConvert::isFFmpeg() {
-  QString str = ui->ffmpegLineEdit->text();
-  if(str.isEmpty()) {
-    QMessageBox::warning(this, MSGBOX_TITLE, "The FFMPEG binary folder was not found!");
-    return false;
-  }
-  return true;
+void QConvert::inputFinished() {
+  ui->playInputButton->setText(PLAY_INPUT);
 }
 
 /**
- * @brief Validate the FFmpeg path.
- * @param dir The directory to test.
+ * @brief Callback called when the output process is stopped.
  */
-void QConvert::validateFFmpegPath(QString &dir) {
-  if (!dir.isEmpty()) {
-    QStringList strList;
-    QString f1 = dir + "/"FFMPEG_BIN;
-    QString f2 = dir + "/"FFPLAY_BIN;
-    if(!QFile::exists(f1)) strList << FFMPEG_BIN;
-    if(!QFile::exists(f2)) strList << FFPLAY_BIN;
-    if(!strList.empty()) {
-      QString err = "The following file";
-      if(strList.size() == 1)
-        err += " " + strList[0] + " was ";
-      else
-        err += "s " + strList.join(",") + " are ";
-      err += " not found";
-      QMessageBox::critical(this, MSGBOX_TITLE, err);
-      ui->ffmpegLineEdit->setFocus(Qt::OtherFocusReason);
-      return;
-    }
-
-    ui->ffmpegLineEdit->setText(dir);
-    ui->fromButton->setEnabled(true);
-  }
+void QConvert::outputFinished() {
+  ui->playOutputButton->setText(PLAY_OUTPUT);
 }
+

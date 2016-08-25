@@ -13,11 +13,14 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        qconvert.cpp
+    QConvert.cpp \
+    QVideoFormat.cpp
 
-HEADERS  += qconvert.h
+HEADERS  += QConvert.hpp \
+    QVideoFormat.hpp \
+    QHelper.hpp
 
-FORMS    += qconvert.ui
+FORMS    += QConvert.ui
 
 OTHER_FILES += \
     .gitignore \

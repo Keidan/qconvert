@@ -18,7 +18,7 @@
  *******************************************************************************
  */
 #include <QApplication>
-#include "qconvert.h"
+#include "QConvert.hpp"
 
 int main(int argc, char *argv[]) {
 

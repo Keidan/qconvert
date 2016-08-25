@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- * @file qconvert.h
+ * @file QConvert.hpp
  * @author Keidan
  * @date 24/08/2016
  * @par Project qconvert
@@ -17,8 +17,8 @@
  *
  *******************************************************************************
  */
-#ifndef QCONVERT_H
-  #define QCONVERT_H
+#ifndef QCONVERT_HPP
+  #define QCONVERT_HPP
 
   #include <QDialog>
   #include <QProcess>
@@ -26,6 +26,7 @@
   #include <QTextEdit>
   #include <QEvent>
   #include <QObject>
+  #include "QHelper.hpp"
 
   namespace Ui {
     class QConvert;
@@ -63,9 +64,9 @@
        void on_ffmpegButton_clicked();
 
        /**
-        * @brief Method called when the user click on the 'from' button.
+        * @brief Method called when the user click on the 'input' button.
         */
-       void on_fromButton_clicked();
+       void on_inputButton_clicked();
 
        /**
         * @brief Method called when the user click on the 'convert' button.
@@ -89,30 +90,32 @@
         */
        bool eventFilter(QObject *object, QEvent *event);
 
+       /**
+        * @brief Callback called when the input process is stopped.
+        */
+       void inputFinished();
+
+       /**
+        * @brief Callback called when the output process is stopped.
+        */
+       void outputFinished();
+
     private:
       Ui::QConvert *ui;
       QProcess *m_encodingProcess;
       QProcess *m_inputPlayProcess;
       QProcess *m_outputPlayProcess;
       QString m_outputString;
+      QString m_fileDialogFormats;
+      QString m_resultFile;
 
-      /**
-       * @brief Test if the FFmpeg entry is valid (non empty), and display a warning message else.
-       * @return true if valid.
-       */
-      bool isFFmpeg();
-
-      /**
-       * @brief Validate the FFmpeg path.
-       * @param dir The directory to test.
-       */
-      void validateFFmpegPath(QString &dir);
 
       /**
        * @brief Append a message to the log area.
        * @param str The message to append.
        */
       void logAreaAppend(QString &str);
+
   };
 
-#endif // QCONVERT_H
+#endif // QCONVERT_HPP
