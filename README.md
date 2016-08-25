@@ -3,23 +3,21 @@ qconvert
 
 (GPL) Qt Convert is a FREE software.
 
-This software allow the media files convertion using [ffmpeg](https://ffmpeg.org/) (it should be installed on your computer).
+This software allow the video files conversion using the [FFmpeg](https://ffmpeg.org/) binaries (They should be installed on your computer).
 
 
 Instructions
 ============
 
-
 download the software :
 
-  mkdir devel
-  cd devel
+    mkdir devel
+    cd devel
+    git clone git://github.com/Keidan/qconvert.git
+    cd qconvert
+    use with Qt Creator
 
-  git clone git://github.com/Keidan/qconvert.git
-  cd qconvert
-  use with Qt Creator
-
-To build this application you should have the Qt libraries.
+To build this application you should have the devel packages of the Qt libraries.
 
 
 License (like GPL)
