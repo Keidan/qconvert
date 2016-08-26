@@ -120,6 +120,7 @@ bool QConvert::eventFilter(QObject *object, QEvent *event) {
  */
 void QConvert::on_convertButton_clicked() {
 
+  ui->playOutputButton->setEnabled(false);
   if(ui->convertButton->text() == STOP_CONVERT) {
     m_encodingProcess->terminate();
     return;
@@ -158,7 +159,10 @@ void QConvert::on_convertButton_clicked() {
     }
   }
 
-  args << "-i" << input << m_resultFile;
+  args << "-i" << input;
+  if(ext == ".mov")
+    args << "-strict" << "-2";
+  args << m_resultFile;
 
 
   logAreaAppend(bin + " -> " + args.join(" ") + "\n");
