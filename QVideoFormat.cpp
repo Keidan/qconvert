@@ -65,8 +65,6 @@ QVideoFormat* QVideoFormat::create(const QString& name, const QString& extension
  */
 QList<QVideoFormat*> QVideoFormat::makeDefaults() {
   QList<QVideoFormat*> list;
-  list << create("3GPP", ".3gp");
-  list << create("3GPP2", ".3gp2");
   list << create("Audio Video Interleave", ".avi");
   list << create("Flash Video", ".flv");
   list << create("Matroska", ".mkv");
@@ -74,5 +72,6 @@ QList<QVideoFormat*> QVideoFormat::makeDefaults() {
   list << create("Open video format", ".ogv");
   list << create("QuickTime", ".mov");
   list << create("ShockWave Flash", ".swf");
+  list << create("3GPP", ".3gp");
   return list;
 }
