@@ -160,6 +160,9 @@ void QConvert::on_convertButton_clicked() {
   }
 
   args << "-i" << input;
+  if(!ui->scaleEditLine->text().isEmpty())
+    args << "-vf" << "scale=" + ui->scaleEditLine->text();
+
   if(ext == ".mov")
     args << "-strict" << "-2";
   args << m_resultFile;

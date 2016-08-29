@@ -2,14 +2,6 @@
 <ui version="4.0">
  <class>QConvert</class>
  <widget class="QDialog" name="QConvert">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>480</width>
-    <height>400</height>
-   </rect>
-  </property>
   <property name="sizePolicy">
    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
     <horstretch>0</horstretch>
@@ -91,6 +83,20 @@
         <widget class="QComboBox" name="formatCombobox"/>
        </item>
       </layout>
+     </item>
+     <item>
+      <widget class="QLabel" name="lblScale">
+       <property name="text">
+        <string>Scale:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="scaleEditLine">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Scaling option, see the FFmpeg scaler documentation (you don't need to add the words 'scale=')&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Let blank to use the default behaviour.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="convertButton">
