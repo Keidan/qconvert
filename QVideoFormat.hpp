@@ -71,7 +71,8 @@
 
       QString m_name;
       QString m_extension;
-
   };
+
+  Q_DECLARE_METATYPE(QVideoFormat*)
 
 #endif // QVIDEOFORMAT_HPP

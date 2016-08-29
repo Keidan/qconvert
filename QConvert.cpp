@@ -25,7 +25,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QFileDialog>
-#include "QVideoFormat.hpp"
+#include "QVideoOptions.hpp"
 
 #define PLAY_INPUT     "Play input"
 #define PLAY_OUTPUT    "Play output"
@@ -37,7 +37,7 @@
 QConvert::QConvert(QWidget *parent) :
     QDialog(parent), ui(new Ui::QConvert), m_encodingProcess(NULL),
     m_inputPlayProcess(NULL), m_outputPlayProcess(NULL), m_outputString(""),
-    m_fileDialogFormats(""), m_resultFile("") {
+    m_fileDialogFormats(""), m_resultFile(""), m_formats() {
 
   ui->setupUi(this);
 
@@ -70,26 +70,27 @@ QConvert::QConvert(QWidget *parent) :
 #endif
 
   /* intialize the cb content */
-  QList<QVideoFormat*> formats = QVideoFormat::makeDefaults();
+  m_formats = QVideoFormat::makeDefaults();
   /* first time iterate to list all media files */
   int i = 0;
   m_fileDialogFormats = "All video files (";
-  for(; i < formats.size(); ++i) {
-    m_fileDialogFormats += "*" + formats.at(i)->getExtension();
-    if(i < formats.size() - 1) m_fileDialogFormats += " ";
+  for(; i < m_formats.size(); ++i) {
+    m_fileDialogFormats += "*" + m_formats.at(i)->getExtension();
+    if(i < m_formats.size() - 1) m_fileDialogFormats += " ";
   }
   m_fileDialogFormats += ");;";
-  for(i = 0; i < formats.size(); ++i) {
-    QVideoFormat* qvf = formats.at(i);
-    ui->formatCombobox->addItem(qvf->format(), QVariant::fromValue(qvf->getExtension()));
+  for(i = 0; i < m_formats.size(); ++i) {
+    QVideoFormat* qvf = m_formats.at(i);
+    ui->formatCombobox->addItem(qvf->format(), QVariant::fromValue<QVideoFormat *>(qvf));
     m_fileDialogFormats += qvf->format();
-    if(i < formats.size() - 1) m_fileDialogFormats += ";;";
-    delete qvf;
+    if(i < m_formats.size() - 1) m_fileDialogFormats += ";;";
   }
-  formats.clear();
 }
 
 QConvert::~QConvert() {
+  for(int i = 0; i < m_formats.size(); ++i)
+    delete m_formats.at(i);
+  m_formats.clear();
   delete ui;
 }
 
@@ -129,15 +130,18 @@ void QConvert::on_convertButton_clicked() {
   if(!QHelper::isFFmpeg(this, bin)) return;
   bin += "/" FFMPEG_BIN;
 
-  QStringList args;
   QString input = ui->inputLineEdit->text();
   if(input.isEmpty()) {
     logAreaAppend("No input\n");
     QMessageBox::information(this, MSGBOX_TITLE, "Input file not specified");
     return;
   }
-  QString ext = ui->formatCombobox->itemData(ui->formatCombobox->currentIndex()).toString();
-  m_resultFile = input + ext;
+  QVideoFormat* fmt = qvariant_cast<QVideoFormat*>(ui->formatCombobox->itemData(ui->formatCombobox->currentIndex()));
+  QVideoOptions opts;
+  opts.setInput(input);
+  opts.setFormat(fmt);
+
+  m_resultFile = opts.output();
   if(m_resultFile.isEmpty()) {
     logAreaAppend("No output\n");
     QMessageBox::information(this, MSGBOX_TITLE, "Output file not specified");
@@ -159,15 +163,7 @@ void QConvert::on_convertButton_clicked() {
     }
   }
 
-  args << "-i" << input;
-  if(!ui->scaleEditLine->text().isEmpty())
-    args << "-vf" << "scale=" + ui->scaleEditLine->text();
-
-  if(ext == ".mov")
-    args << "-strict" << "-2";
-  args << m_resultFile;
-
-
+  QStringList args = opts.options();
   logAreaAppend(bin + " -> " + args.join(" ") + "\n");
   ui->convertButton->setText(STOP_CONVERT);
   m_encodingProcess->setProcessChannelMode(QProcess::MergedChannels);
@@ -216,7 +212,7 @@ void QConvert::on_ffmpegButton_clicked() {
   if(!ui->ffmpegLineEdit->text().isEmpty())
       home = ui->ffmpegLineEdit->text();
   QString dir = QFileDialog::getExistingDirectory(
-    this, tr("FFMPEG directory"), home,
+    this, "FFMPEG directory", home,
     QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
   QHelper::validateFFmpegPath(this, dir, ui->ffmpegLineEdit, ui->inputButton);
 }

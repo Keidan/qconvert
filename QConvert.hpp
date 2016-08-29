@@ -27,6 +27,7 @@
   #include <QEvent>
   #include <QObject>
   #include "QHelper.hpp"
+  #include "QVideoFormat.hpp"
 
   namespace Ui {
     class QConvert;
@@ -108,6 +109,7 @@
       QString m_outputString;
       QString m_fileDialogFormats;
       QString m_resultFile;
+      QList<QVideoFormat*> m_formats;
 
 
       /**

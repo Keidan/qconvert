@@ -14,11 +14,13 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
     QConvert.cpp \
-    QVideoFormat.cpp
+    QVideoFormat.cpp \
+    QVideoOptions.cpp
 
 HEADERS  += QConvert.hpp \
     QVideoFormat.hpp \
-    QHelper.hpp
+    QHelper.hpp \
+    QVideoOptions.hpp
 
 FORMS    += QConvert.ui
 
